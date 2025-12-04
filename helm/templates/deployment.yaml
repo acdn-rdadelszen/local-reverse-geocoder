@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    reloader.stakater.com/auto: "true"
+  name: weld-reverse-geocoder
+  labels:
+    app: weld-reverse-geocoder
+spec:
+  selector:
+    matchLabels:
+      app: weld-reverse-geocoder
+  replicas: {{ .Values.replicaCount }}
+  template:
+    metadata:
+      labels:
+        app: weld-reverse-geocoder
+    spec:
+      imagePullSecrets: {{ toYaml .Values.global.images.pullSecrets | nindent 14 }}
+    {{- if eq .Values.global.deployment_type "dev" }}
+      nodeSelector:
+        size: dev-pool
+    {{- end }}
+    {{- if eq .Values.global.deployment_type "dev" }}
+      tolerations:
+      - effect: NoSchedule
+        key: dedicated
+        operator: Equal
+        value: devpool
+    {{- end }}
+      containers:
+      - name: weld-reverse-geocoder
+        image: {{ .Values.image.registry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}
+        imagePullPolicy: {{ .Values.image.pullPolicy }}
+        resources:
+          {{- toYaml .Values.resources | nindent 12 }}
+        envFrom:
+          - configMapRef:
+              name: weld-reverse-geocoder-cfg
+        ports:
+        - containerPort: 3000
+          name: weld-reverse-geocoder
+          protocol: TCP
+        volumeMounts:
+          - name: weld-reverse-geocoder-volume
+            mountPath: /weld-reverse-geocoder-volume
+            subPath: weld-reverse-geocoder-volume
+      volumes:
+        - name: weld-reverse-geocoder-volume

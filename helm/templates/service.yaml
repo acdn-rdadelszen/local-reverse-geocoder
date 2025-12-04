@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: weld-reverse-geocoder
+  labels:
+    app: weld-reverse-geocoder
+spec:
+  selector:
+    app: weld-reverse-geocoder
+  type: ClusterIP
+  ports:
+    - name: weld-reverse-geocoder
+      port: 3000
+      targetPort:
+      protocol: TCP
